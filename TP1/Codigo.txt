@@ -32,6 +32,7 @@ int flagRandom = 1;
 int flagApagado = 1;
 int flagDadoRebote = 1;
 int flagRandomBoton = 0;
+int flagUpyDown = 0;
 int contadorRandom = 0;
 int ledRandom;
 int aux;
@@ -91,30 +92,37 @@ void loop()
            if(contadorRandom == 4)
            {
              flagRandomBoton = -1;
+             flagUpyDown = 1;
            }
          }
   	}
   botonRandomAntes = botonRandomAhora;
   
   botonDownAhora = digitalRead(BotonDown);
-  if ((botonDownAhora == HIGH) && (botonDownAntes == LOW))
+  if(flagUpyDown)
   {
-    aux = RestarBoton(valorActualDado, 1,7);
-    valorActualDado = aux;
-    Serial.print(valorActualDado);
-    PrenderLeds(valorActualDado);
-  }
-  botonDownAntes = botonDownAhora;
-  
-  botonUpAhora = digitalRead(BotonUp);
-  if ((botonUpAhora == HIGH) && (botonUpAntes == LOW))
-  {
-      auxUp = SumarBoton(valorActualDado, 1, 7);
-      valorActualDado = auxUp;
+    if ((botonDownAhora == HIGH) && (botonDownAntes == LOW))
+    {
+      aux = RestarBoton(valorActualDado, 1,7);
+      valorActualDado = aux;
       Serial.print(valorActualDado);
       PrenderLeds(valorActualDado);
+    }
+    botonDownAntes = botonDownAhora;
   }
-  botonUpAntes = botonUpAhora;
+  
+  botonUpAhora = digitalRead(BotonUp);
+  if(flagUpyDown)
+  {
+    if ((botonUpAhora == HIGH) && (botonUpAntes == LOW))
+    {
+        auxUp = SumarBoton(valorActualDado, 1, 7);
+        valorActualDado = auxUp;
+        Serial.print(valorActualDado);
+        PrenderLeds(valorActualDado);
+    }
+    botonUpAntes = botonUpAhora;
+  }
 }
   
 void PrenderLeds (int numero){
