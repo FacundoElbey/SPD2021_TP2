@@ -1,0 +1,205 @@
+#define BotonRandom 2
+#define BotonDown 3
+#define BotonUp 4
+
+void PrenderLeds(int);
+int RestarBoton(int, int, int);
+int SumarBoton (int, int, int);
+
+void setup()
+{
+  Serial.begin(9600);
+  
+  pinMode(9, OUTPUT);
+  pinMode(7, OUTPUT);
+  pinMode(10, OUTPUT);
+  pinMode(8, OUTPUT);
+  pinMode(11, OUTPUT);
+  pinMode(6, OUTPUT);
+  pinMode(5, OUTPUT);
+  pinMode(BotonUp, INPUT);
+  pinMode(BotonDown, INPUT);
+  pinMode(BotonRandom, INPUT);
+  
+  randomSeed(analogRead(A0));
+}
+
+int estadoLed = LOW;
+int botonRandomAntes = LOW;
+int botonDownAntes = LOW;
+int botonUpAntes = LOW;
+int flagRandom = 1;
+int flagApagado = 1;
+int flagDadoRebote = 1;
+int flagRandomBoton = 0;
+int contadorRandom = 0;
+int ledRandom;
+int aux;
+int auxUp;
+int valorActualDado;
+unsigned long millisAntes = 0;
+int intervaloRandom = 500;
+
+void loop()
+{
+  unsigned long millisActual = millis();
+  int botonRandomAhora;
+  int botonDownAhora;
+  int botonUpAhora;
+  int ledDecrecimiento;
+
+  botonRandomAhora = 0;
+  botonDownAhora = 0;
+  botonUpAhora = 0;
+  ledDecrecimiento = 0;
+  
+  if(flagApagado)
+  {
+  digitalWrite(11, estadoLed);
+  digitalWrite(10, estadoLed);
+  digitalWrite(9, estadoLed);
+  digitalWrite(8, estadoLed);
+  digitalWrite(7, estadoLed);
+  digitalWrite(6, estadoLed);
+  digitalWrite(5, estadoLed);
+  flagApagado = 0;
+	}
+
+  if(flagRandom == 1)
+  {
+  	ledRandom = random(1,7);
+  	valorActualDado = ledRandom;
+  	flagRandom = 0;
+  } 
+
+  if (botonRandomAhora = digitalRead(BotonRandom))
+   {
+     flagRandomBoton = 1;
+     contadorRandom = 0;
+   }
+  
+  if((millisActual - millisAntes) >= intervaloRandom)
+   {
+      if(((botonRandomAhora == HIGH) && (botonRandomAntes == LOW))|| flagRandomBoton == 1)
+  		{
+        millisAntes = millisActual;
+        ledRandom = random(1,7);
+        valorActualDado = ledRandom;
+        PrenderLeds(valorActualDado);
+        Serial.print(valorActualDado);
+        contadorRandom++;
+           if(contadorRandom == 4)
+           {
+             flagRandomBoton = -1;
+           }
+         }
+  	}
+  botonRandomAntes = botonRandomAhora;
+  
+  botonDownAhora = digitalRead(BotonDown);
+  if ((botonDownAhora == HIGH) && (botonDownAntes == LOW))
+  {
+    aux = RestarBoton(valorActualDado, 1,7);
+    valorActualDado = aux;
+    Serial.print(valorActualDado);
+    PrenderLeds(valorActualDado);
+  }
+  botonDownAntes = botonDownAhora;
+  
+  botonUpAhora = digitalRead(BotonUp);
+  if ((botonUpAhora == HIGH) && (botonUpAntes == LOW))
+  {
+      auxUp = SumarBoton(valorActualDado, 1, 7);
+      valorActualDado = auxUp;
+      Serial.print(valorActualDado);
+      PrenderLeds(valorActualDado);
+  }
+  botonUpAntes = botonUpAhora;
+}
+  
+void PrenderLeds (int numero){
+  switch(numero)
+    {
+      case 1:
+    		digitalWrite(8, !estadoLed);
+    		digitalWrite(11, estadoLed);
+    		digitalWrite(10, estadoLed);
+    		digitalWrite(9, estadoLed);
+    		digitalWrite(7, estadoLed);
+    		digitalWrite(6, estadoLed);
+    		digitalWrite(5, estadoLed);
+      break;
+
+      case 2:
+    		digitalWrite(11, !estadoLed);
+    		digitalWrite(7, !estadoLed);
+    		digitalWrite(10, estadoLed);
+    		digitalWrite(9, estadoLed);
+    		digitalWrite(8, estadoLed);
+    		digitalWrite(6, estadoLed);
+    		digitalWrite(5, estadoLed);
+      break;
+
+      case 3:
+    		digitalWrite(8, !estadoLed);
+    		digitalWrite(11, !estadoLed);
+    		digitalWrite(7, !estadoLed);
+    		digitalWrite(10, estadoLed);
+    		digitalWrite(9, estadoLed);
+    		digitalWrite(6, estadoLed);
+    		digitalWrite(5, estadoLed);
+      break;
+
+      case 4:
+    		digitalWrite(5, !estadoLed);
+    		digitalWrite(7, !estadoLed);
+    		digitalWrite(9, !estadoLed);
+    		digitalWrite(11, !estadoLed);
+    		digitalWrite(10, estadoLed);
+    		digitalWrite(8, estadoLed);
+    		digitalWrite(6, estadoLed);
+      break;
+
+      case 5:
+    		digitalWrite(5, !estadoLed);
+    		digitalWrite(7, !estadoLed);
+    		digitalWrite(8, !estadoLed);
+    		digitalWrite(9, !estadoLed);
+    		digitalWrite(11, !estadoLed);
+    		digitalWrite(10, estadoLed);
+    		digitalWrite(6, estadoLed);
+      break;
+
+      case 6:
+    		digitalWrite(5, !estadoLed);
+    		digitalWrite(6, !estadoLed);
+    		digitalWrite(7, !estadoLed);
+    		digitalWrite(9, !estadoLed);
+    		digitalWrite(10, !estadoLed);
+    		digitalWrite(11, !estadoLed);
+    		digitalWrite(8, estadoLed);
+      break;
+    }
+  }
+
+int RestarBoton (int numeroDado, int minimo, int maximo)
+    {
+ 	int resultado;  
+  	resultado = numeroDado - 1;
+    if ((resultado < 1) || (resultado > 6))
+  	{
+    	resultado = numeroDado;
+  	} 
+ 	return resultado;   
+}
+
+int SumarBoton (int numeroDado, int minimo, int maximo)
+  {
+    int resultado;
+  	resultado = numeroDado + 1;
+  	if ((resultado < 1) || (resultado > 6))
+  	{
+    	resultado = numeroDado;
+  	}
+  	return resultado;  
+  }
