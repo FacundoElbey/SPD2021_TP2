@@ -1,0 +1,198 @@
+#include <Keypad.h>
+#include <LiquidCrystal.h>
+#define ningunBoton 0
+#define boton_reset 1
+#define boton_test 2
+#define boton_configurar 3
+
+LiquidCrystal lcd(0,1,2,3,4,13);
+
+const byte FILAS = 4;
+const byte COLUMNAS = 4;
+char keys[FILAS][COLUMNAS] = {
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+};
+
+byte pinesFilas[FILAS] = {12, 11, 10, 9};
+byte pinesColumnas[COLUMNAS] = {8, 7, 6, 5};
+
+Keypad teclado = Keypad(makeKeymap(keys), pinesFilas, pinesColumnas, FILAS, COLUMNAS );
+
+char TECLA;
+char CLAVE[7];
+char CLAVE_DEFAULT[] = "2C2021";
+int INDICE = 0;
+
+unsigned long millisAnterior = 0;
+int estadoLed = LOW;
+int ledParpadeo = A3;
+int LedAmarillo = 0;
+int contador = 10;
+  
+void setup()
+{  
+  	pinMode(A0, OUTPUT); 
+	pinMode(A1, OUTPUT); 
+	pinMode(A2, OUTPUT);
+  	
+  	lcd.begin(16, 2);
+    lcd.print("Password:");
+}
+
+void loop()
+{
+  if (contador != 10)
+  {
+     titilarLed();
+  } 
+  
+  if (contador == 10 && LedAmarillo == 1)
+  {
+    digitalWrite(A1, HIGH);
+    LedAmarillo = 0;
+  }
+  
+  TECLA = teclado.getKey();
+
+  if(TECLA)
+  {
+    CLAVE[INDICE] = TECLA;
+    INDICE++;
+    lcd.print(TECLA);
+  }
+
+  if(INDICE == 6)
+  {
+    if(!strcmp(CLAVE, CLAVE_DEFAULT))
+    {
+      lcd.clear();
+      lcd.print("Password Ok.");
+      ledParpadeo = A0;
+      contador = 0;
+      
+      lcd.setCursor(0,1);
+      lcd.print("Password:");
+    }
+    else
+    {
+      lcd.clear();
+      lcd.print("Password Fail.");
+      ledParpadeo = A2;
+      contador = 0;  
+      
+      lcd.setCursor(0,1);
+      lcd.print("Password:");
+    }
+    INDICE = 0;
+  }
+  leerBoton();
+  aplicacionBotones();
+}
+
+int leerBoton()
+{
+  int valorBoton = analogRead(A3);
+  int retorno = 0;
+  
+  if(valorBoton > 502 && valorBoton < 522)
+  {
+    retorno = boton_reset;
+  }
+
+  if(valorBoton > 672 && valorBoton < 692)
+  {
+    retorno = boton_test;
+  }
+  
+  if(valorBoton > 757 && valorBoton < 777)
+  {
+    retorno = boton_configurar;
+  }
+  
+  return retorno;
+}
+
+void aplicacionBotones()
+{
+  int botonAntes = ningunBoton;
+  int botonAhora = leerBoton();
+  
+  if (botonAhora != ningunBoton && botonAhora != botonAntes)
+  {
+    switch(botonAhora)
+    {
+      case boton_reset:
+       lcd.clear();
+       lcd.print("Password: "); 
+       break;
+      
+      case boton_test:
+      	if(strcmp(CLAVE, CLAVE_DEFAULT) == 0)
+        {
+          lcd.clear();
+          lcd.write("Password Ok.");
+          ledParpadeo = A0;
+      	  contador = 0;
+          
+          lcd.setCursor(0,1);
+      	  lcd.print("Password:");
+        }
+      	else
+      	{
+          lcd.clear();
+          lcd.write("Password Fail.");
+          ledParpadeo = A2;
+     	  contador = 0;
+          
+          lcd.setCursor(0,1);
+      	  lcd.print("Password:");
+      	}
+      	break;
+      
+      case boton_configurar:
+      INDICE = 0;
+      lcd.clear();
+      lcd.print("Password: ");
+      for(INDICE=0; INDICE<6;)
+      {
+ 		TECLA = teclado.getKey();
+        if(TECLA)
+        {
+          lcd.print(TECLA);
+          CLAVE[INDICE] = TECLA;
+          INDICE++;
+        }
+      }
+      if(INDICE == 6)
+      {
+        lcd.clear();
+        strcpy(CLAVE_DEFAULT,CLAVE);
+        lcd.write("Pass New.");
+
+      }
+      
+      break;
+    }
+  }
+  
+}
+
+void titilarLed()
+{
+	unsigned long millisActual = millis();
+    if (millisActual - millisAnterior >= 500)
+    {
+        estadoLed = !estadoLed;
+        digitalWrite (ledParpadeo, estadoLed);
+        millisAnterior = millisActual;
+    	contador ++;
+    }
+ 
+    if (contador == 10)
+    {
+      	LedAmarillo = 1;
+    }
+}
